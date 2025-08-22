@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Login/Signup Container -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-box">
+            <div class="theme-toggle-wrap">
+                <button id="auth-theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙 Dark</button>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="showAuthForm('login')">Login</button>
+                <button class="auth-tab" onclick="showAuthForm('signup')">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <h2>Welcome Back</h2>
+                <div class="form-group">
+                    <input type="text" id="login-username" placeholder="Username" required>
+                    <div id="login-username-error" class="form-error hidden"></div>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button type="button" class="password-toggle" data-target="login-password" aria-label="Toggle password visibility">Show</button>
+                    <div id="login-password-error" class="form-error hidden"></div>
+                </div>
+                <div class="form-row" style="margin: -8px 0 16px 0;">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:14px; color: var(--muted-text);">
+                        <input type="checkbox" id="login-remember">
+                        Remember me
+                    </label>
+                </div>
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signup-form" class="auth-form hidden">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <input type="text" id="signup-username" placeholder="Username" required>
+                    <div id="signup-username-error" class="form-error hidden"></div>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="signup-email" placeholder="Email" required>
+                    <div id="signup-email-error" class="form-error hidden"></div>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signup-password" placeholder="Password" required>
+                    <button type="button" class="password-toggle" data-target="signup-password" aria-label="Toggle password visibility">Show</button>
+                    <div id="signup-password-error" class="form-error hidden"></div>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
+                    <button type="button" class="password-toggle" data-target="signup-confirm-password" aria-label="Toggle password visibility">Show</button>
+                    <div id="signup-confirm-password-error" class="form-error hidden"></div>
+                </div>
+                <div class="strength-meter" aria-hidden="false">
+                    <div class="strength-bar" id="signup-strength-bar"></div>
+                    <span class="strength-text" id="signup-strength-text">Password strength</span>
+                </div>
+                <button type="submit" class="auth-btn">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app-container" class="app-container hidden">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Sales Management System</h1>
+                <div class="user-info">
+                    <button id="app-theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙 Dark</button>
+                    <span id="current-user"></span>
+                    <button onclick="logout()" class="logout-btn">Logout</button>
+                    <button onclick="clearAllData()" class="btn danger">Clear All Data</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <button class="nav-btn active" onclick="showSection('dashboard')">Dashboard</button>
+            <button class="nav-btn" onclick="showSection('products')">Products</button>
+            <button class="nav-btn" onclick="showSection('sales')">Record Sales</button>
+            <button class="nav-btn" onclick="showSection('reports')">Reports</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <h2>Dashboard</h2>
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Total Sales</h3>
+                        <p id="total-sales">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Orders</h3>
+                        <p id="total-orders">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Products Available</h3>
+                        <p id="total-products">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Low Stock Items</h3>
+                        <p id="low-stock-count">0</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-charts">
+                    <div class="chart-container">
+                        <h3>Sales Overview</h3>
+                        <canvas id="sales-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Top Products</h3>
+                        <canvas id="products-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dashboard-lists">
+                    <div class="list-container">
+                        <h3>Recent Sales</h3>
+                        <div id="recent-sales" class="list-content"></div>
+                    </div>
+                    <div class="list-container">
+                        <h3>Low Stock Alert</h3>
+                        <div id="low-stock-alert" class="list-content"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section id="products" class="section">
+                <h2>Product Management</h2>
+                <div class="section-header">
+                    <button class="btn primary" onclick="showAddProductForm()">Add New Product</button>
+                    <button class="btn danger" onclick="clearProducts()">Clear All Products</button>
+                </div>
+
+                <!-- Add Product Form -->
+                <div id="add-product-form" class="form-container hidden">
+                    <h3>Add New Product</h3>
+                    <form id="product-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Product Name</label>
+                                <input type="text" id="product-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Price (₵)</label>
+                                <input type="number" id="product-price" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <input type="text" id="product-category" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Quantity</label>
+                                <input type="number" id="product-stock" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Discount (%)</label>
+                                <input type="number" id="product-discount" min="0" max="100" step="1" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn primary">Add Product</button>
+                            <button type="button" class="btn secondary" onclick="hideAddProductForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Edit Product Form -->
+                <div id="edit-product-form" class="form-container hidden">
+                    <h3>Edit Product</h3>
+                    <form id="product-edit-form">
+                        <input type="hidden" id="edit-product-id">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Product Name</label>
+                                <input type="text" id="edit-product-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Price (₵)</label>
+                                <input type="number" id="edit-product-price" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <input type="text" id="edit-product-category" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Quantity</label>
+                                <input type="number" id="edit-product-stock" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Discount (%)</label>
+                                <input type="number" id="edit-product-discount" min="0" max="100" step="1" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn primary">Save Changes</button>
+                            <button type="button" class="btn secondary" onclick="hideEditProductForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-container">
+                    <table id="products-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sales Section -->
+            <section id="sales" class="section">
+                <h2>Record Sales</h2>
+                <form id="sales-form" class="sales-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Select Product</label>
+                            <select id="sales-product" required>
+                                <option value="">Choose a product...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" id="sales-quantity" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="sales-date" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">Record Sale</button>
+                        <button type="button" class="btn danger" onclick="clearSales()">Clear All Sales</button>
+                    </div>
+                </form>
+
+                <!-- Recent Sales Table -->
+                <div class="table-container">
+                    <h3>Recent Sales</h3>
+                    <table id="sales-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="section">
+                <h2>Sales Reports</h2>
+                <div class="reports-controls">
+                    <div class="report-filters">
+                        <button class="btn secondary" onclick="generateReport('today')">Today</button>
+                        <button class="btn secondary" onclick="generateReport('week')">Last 7 Days</button>
+                        <button class="btn secondary" onclick="generateReport('month')">Last 30 Days</button>
+                        <button class="btn secondary" onclick="generateReport('all')">All Time</button>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn primary" onclick="printReport()">Print Report</button>
+                        <button class="btn primary" onclick="exportReport()">Export CSV</button>
+                        <button class="btn danger" onclick="clearReports()">Clear Reports</button>
+                    </div>
+                </div>
+
+                <div id="report-content" class="report-content">
+                    <div class="report-summary">
+                        <div class="summary-card">
+                            <h3>Total Sales</h3>
+                            <p id="report-total-sales">$0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Items Sold</h3>
+                            <p id="report-items-sold">0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Top Product</h3>
+                            <p id="report-top-product">None</p>
+                        </div>
+                    </div>
+
+                    <div class="report-details">
+                        <h3>Sales Details</h3>
+                        <table id="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- PIN Modal -->
+    <div id="pin-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Enter PIN to Confirm</h3>
+            <p id="pin-message">Please enter the PIN to confirm this action.</p>
+            <input type="password" id="pin-input" placeholder="Enter PIN" maxlength="4">
+            <div class="modal-actions">
+                <button onclick="confirmPinAction()" class="btn primary">Confirm</button>
+                <button onclick="cancelPinAction()" class="btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
